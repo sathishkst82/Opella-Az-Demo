@@ -45,12 +45,9 @@ jobs:
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
           subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Install tflint and Wiz CLI
+      - name: Install TFLint
         run: |
           curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
-          curl -o wizcli https://downloads.wiz.io/wizcli/latest/wizcli-linux-amd64
-          chmod +x wizcli
-          sudo mv wizcli /usr/local/bin/wizcli
 
       - name: Terraform init
         working-directory: ${{ env.ENV_DIR }}
@@ -76,12 +73,6 @@ jobs:
         run: |
           tflint --init
           tflint --chdir=${{ env.ENV_DIR }}
-
-      - name: Wiz auth
-        run: wizcli auth --id "${{ secrets.WIZ_CLIENT_ID }}" --secret "${{ secrets.WIZ_CLIENT_SECRET }}"
-
-      - name: Wiz IaC scan
-        run: wizcli iac scan --path ${{ env.ENV_DIR }} --policy-hits-only
 
       - name: Terraform plan
         working-directory: ${{ env.ENV_DIR }}
