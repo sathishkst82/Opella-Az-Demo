@@ -142,7 +142,9 @@ module "storage" {
   }
 
   network_rules = {
-    default_action             = "Deny"
+    # GitHub-hosted runners are outside the VNET, so DEV keeps data-plane access open for CI.
+    # In production, use a self-hosted runner in the VNET or explicit runner IP allowlists.
+    default_action             = "Allow"
     bypass                     = ["AzureServices"]
     virtual_network_subnet_ids = [module.network.subnet_ids.application, module.network.subnet_ids.data]
   }
@@ -216,8 +218,10 @@ resource "azurerm_monitor_diagnostic_setting" "storage_blob" {
 module "governance" {
   source = "../../modules/governance"
 
-  assignment_scope  = azurerm_resource_group.this.id
-  allowed_locations = var.allowed_locations
-  required_tags     = ["Environment", "Project", "ManagedBy", "Owner", "CostCenter", "Region", "Application"]
-  enforcement_mode  = "DoNotEnforce"
+  assignment_scope   = azurerm_resource_group.this.id
+  policy_name_prefix = "${var.project}-${var.environment}-${var.location_short}"
+  initiative_name    = "Opella-Governance-Baseline-${upper(var.environment)}"
+  allowed_locations  = var.allowed_locations
+  required_tags      = ["Environment", "Project", "ManagedBy", "Owner", "CostCenter", "Region", "Application"]
+  enforcement_mode   = "DoNotEnforce"
 }

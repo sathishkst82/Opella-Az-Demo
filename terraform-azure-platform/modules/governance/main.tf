@@ -43,7 +43,7 @@ locals {
 }
 
 resource "azurerm_policy_definition" "require_tags" {
-  name         = "opella-require-tags"
+  name         = "${var.policy_name_prefix}-require-tags"
   display_name = "Opella - Require mandatory tags"
   policy_type  = "Custom"
   mode         = "Indexed"
@@ -52,7 +52,7 @@ resource "azurerm_policy_definition" "require_tags" {
 }
 
 resource "azurerm_policy_definition" "allowed_regions" {
-  name         = "opella-allowed-regions"
+  name         = "${var.policy_name_prefix}-allowed-regions"
   display_name = "Opella - Allowed Azure regions"
   policy_type  = "Custom"
   mode         = "Indexed"
@@ -70,7 +70,7 @@ resource "azurerm_policy_definition" "allowed_regions" {
 }
 
 resource "azurerm_policy_definition" "deny_public_ip" {
-  name         = "opella-deny-public-ip"
+  name         = "${var.policy_name_prefix}-deny-public-ip"
   display_name = "Opella - Deny Public IP"
   policy_type  = "Custom"
   mode         = "All"
@@ -79,7 +79,7 @@ resource "azurerm_policy_definition" "deny_public_ip" {
 }
 
 resource "azurerm_policy_set_definition" "baseline" {
-  name         = lower(replace(var.initiative_name, " ", "-"))
+  name         = "${var.policy_name_prefix}-governance-baseline"
   display_name = var.initiative_name
   policy_type  = "Custom"
   description  = "Baseline initiative for tag, region, and public exposure controls."
@@ -119,7 +119,7 @@ resource "azurerm_policy_set_definition" "baseline" {
 }
 
 resource "azurerm_resource_group_policy_assignment" "baseline" {
-  name                 = "opella-governance-baseline"
+  name                 = "${var.policy_name_prefix}-governance-baseline"
   resource_group_id    = var.assignment_scope
   policy_definition_id = azurerm_policy_set_definition.baseline.id
   display_name         = var.initiative_name

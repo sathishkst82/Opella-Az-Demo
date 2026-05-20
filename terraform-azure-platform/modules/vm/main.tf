@@ -79,7 +79,7 @@ resource "azurerm_windows_virtual_machine" "this" {
   os_disk {
     caching              = each.value.os_disk.caching
     storage_account_type = each.value.os_disk.storage_account_type
-    disk_size_gb         = each.value.os_disk.disk_size_gb
+    disk_size_gb         = try(each.value.os_disk.disk_size_gb, null)
   }
 
   source_image_reference {

@@ -4,6 +4,12 @@ variable "initiative_name" {
   default     = "Opella-Governance-Baseline"
 }
 
+variable "policy_name_prefix" {
+  description = "Unique prefix for subscription-level policy definition names."
+  type        = string
+  default     = "opella"
+}
+
 variable "assignment_scope" {
   description = "Azure scope where the policy initiative is assigned."
   type        = string

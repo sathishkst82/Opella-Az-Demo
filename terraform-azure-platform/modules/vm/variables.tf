@@ -35,7 +35,7 @@ variable "vms" {
     os_disk = optional(object({
       caching              = optional(string, "ReadWrite")
       storage_account_type = optional(string, "Premium_LRS")
-      disk_size_gb         = optional(number, 64)
+      disk_size_gb         = optional(number)
     }), {})
     data_disks = optional(map(object({
       lun                  = number
