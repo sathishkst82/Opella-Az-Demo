@@ -66,8 +66,18 @@ jobs:
       - name: TFLint
         run: tflint --init && tflint --recursive
       - name: Wiz IaC Scan
+        env:
+          WIZ_CLIENT_ID: ${{ secrets.WIZ_CLIENT_ID }}
+          WIZ_CLIENT_SECRET: ${{ secrets.WIZ_CLIENT_SECRET }}
         run: |
-          wizcli auth --id "${{ secrets.WIZ_CLIENT_ID }}" --secret "${{ secrets.WIZ_CLIENT_SECRET }}"
+          if [ -z "$WIZ_CLIENT_ID" ] || [ -z "$WIZ_CLIENT_SECRET" ]; then
+            echo "Wiz secrets are not configured; skipping Wiz IaC scan."
+            exit 0
+          fi
+          curl -o wizcli https://downloads.wiz.io/wizcli/latest/wizcli-linux-amd64
+          chmod +x wizcli
+          sudo mv wizcli /usr/local/bin/wizcli
+          wizcli auth --id "$WIZ_CLIENT_ID" --secret "$WIZ_CLIENT_SECRET"
           wizcli iac scan --path .
       - name: Optional state operations
         run: |
