@@ -51,7 +51,7 @@ module "vm" {
   vms = {
     "vm-opella-prod-eastus-001" = {
       subnet_id        = module.vnet.subnet_ids["management-subnet"]
-      vm_size          = "Standard_B2ms"
+      vm_size          = "Standard_B1s"
       enable_public_ip = false
       computer_name    = "oplprd001"
     }
