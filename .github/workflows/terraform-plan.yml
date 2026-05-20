@@ -57,7 +57,7 @@ jobs:
           subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
       - name: Terraform Init
         run: |
-          terraform -chdir=environments/${{ fromJSON('{"DEV":"dev","UAT":"uat","PROD":"prod"}')[inputs.environment] }} init \
+          terraform -chdir=environments/${{ fromJSON('{"DEV":"dev","UAT":"uat","PROD":"prod"}')[inputs.environment] }} init -input=false \
             -backend-config="resource_group_name=${{ secrets.TF_BACKEND_RESOURCE_GROUP }}" \
             -backend-config="storage_account_name=${{ secrets.TF_BACKEND_STORAGE_ACCOUNT }}" \
             -backend-config="container_name=${{ secrets.TF_BACKEND_CONTAINER }}" \
@@ -93,12 +93,13 @@ jobs:
             terraform -chdir=environments/${{ fromJSON('{"DEV":"dev","UAT":"uat","PROD":"prod"}')[inputs.environment] }} state rm "${{ inputs.tf_remove_name }}"
           fi
       - name: Terraform Plan
+        timeout-minutes: 30
         run: |
           EXTRA=""
           if [ "${{ inputs.tf_use_extra_args }}" = "true" ] && [ -n "${{ secrets.EXTRA_ARGS }}" ]; then
             EXTRA="${{ secrets.EXTRA_ARGS }}"
           fi
-          terraform -chdir=environments/${{ fromJSON('{"DEV":"dev","UAT":"uat","PROD":"prod"}')[inputs.environment] }} plan -out=tfplan $EXTRA
+          terraform -chdir=environments/${{ fromJSON('{"DEV":"dev","UAT":"uat","PROD":"prod"}')[inputs.environment] }} plan -input=false -lock-timeout=5m -out=tfplan $EXTRA
           terraform -chdir=environments/${{ fromJSON('{"DEV":"dev","UAT":"uat","PROD":"prod"}')[inputs.environment] }} show -no-color tfplan > tfplan.txt
       - uses: actions/upload-artifact@v4
         with:

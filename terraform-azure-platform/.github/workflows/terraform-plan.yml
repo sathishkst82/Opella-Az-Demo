@@ -52,7 +52,7 @@ jobs:
       - name: Terraform init
         working-directory: ${{ env.ENV_DIR }}
         run: |
-          terraform init \
+          terraform init -input=false \
             -backend-config="resource_group_name=${{ secrets.TF_BACKEND_RESOURCE_GROUP }}" \
             -backend-config="storage_account_name=${{ secrets.TF_BACKEND_STORAGE_ACCOUNT }}" \
             -backend-config="container_name=${{ secrets.TF_BACKEND_CONTAINER }}" \
@@ -91,11 +91,12 @@ jobs:
           wizcli iac scan --path ${{ env.ENV_DIR }} --policy-hits-only
 
       - name: Terraform plan
+        timeout-minutes: 30
         working-directory: ${{ env.ENV_DIR }}
         run: |
           EXTRA=""
           if [ "${{ inputs.tf_use_extra_args }}" = "true" ]; then EXTRA="${{ secrets.EXTRA_ARGS }}"; fi
-          terraform plan -out="${{ env.PLAN_FILE }}" $EXTRA
+          terraform plan -input=false -lock-timeout=5m -out="${{ env.PLAN_FILE }}" $EXTRA
 
       - name: Generate plan summary
         working-directory: ${{ env.ENV_DIR }}

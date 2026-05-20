@@ -44,7 +44,7 @@ jobs:
       - name: Terraform init
         working-directory: ${{ env.ENV_DIR }}
         run: |
-          terraform init \
+          terraform init -input=false \
             -backend-config="resource_group_name=${{ secrets.TF_BACKEND_RESOURCE_GROUP }}" \
             -backend-config="storage_account_name=${{ secrets.TF_BACKEND_STORAGE_ACCOUNT }}" \
             -backend-config="container_name=${{ secrets.TF_BACKEND_CONTAINER }}" \
@@ -60,7 +60,7 @@ jobs:
         run: |
           EXTRA=""
           if [ "${{ inputs.tf_use_extra_args }}" = "true" ]; then EXTRA="${{ secrets.EXTRA_ARGS }}"; fi
-          terraform plan -destroy -out="${{ env.PLAN_FILE }}" $EXTRA
+          terraform plan -input=false -lock-timeout=5m -destroy -out="${{ env.PLAN_FILE }}" $EXTRA
 
       - name: Upload destroy plan
         uses: actions/upload-artifact@v4
