@@ -19,7 +19,7 @@ locals {
   subnet_nsg_rules = {
     for key, subnet in var.subnets : key => concat(
       [for rule_name in try(subnet.nsg_rules, []) : one([for rule in lookup(var.nsg_rules, key, []) : rule if rule.name == rule_name])],
-      try(subnet.nsg_rules, []) == [] ? lookup(var.nsg_rules, key, []) : []
+      length(try(subnet.nsg_rules, [])) == 0 ? lookup(var.nsg_rules, key, []) : []
     )
   }
 

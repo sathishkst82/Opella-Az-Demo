@@ -1,9 +1,8 @@
 locals {
-  env        = "prod"
-  cidr       = "10.20.0.0/16"
-  short_loc  = "eus"
-  rg_name    = "rg-opella-prod-eastus"
-  vnet_name  = "vnet-opella-prod-eastus"
+  env       = "prod"
+  cidr      = "10.20.0.0/16"
+  rg_name   = "rg-opella-prod-eastus"
+  vnet_name = "vnet-opella-prod-eastus"
   common_tags = {
     Environment = upper(local.env)
     Project     = var.project
@@ -14,7 +13,11 @@ locals {
     Application = "opella-platform"
   }
 }
-resource "azurerm_resource_group" "this" { name = local.rg_name location = var.location tags = local.common_tags }
+resource "azurerm_resource_group" "this" {
+  name     = local.rg_name
+  location = var.location
+  tags     = local.common_tags
+}
 module "vnet" {
   source              = "../../modules/vnet"
   resource_group_name = azurerm_resource_group.this.name
@@ -22,11 +25,11 @@ module "vnet" {
   vnet_name           = local.vnet_name
   address_space       = [local.cidr]
   subnets = {
-    management-subnet      = { address_prefixes = ["10.20.1.0/24"] }
-    application-subnet     = { address_prefixes = ["10.20.2.0/24"] }
-    data-subnet            = { address_prefixes = ["10.20.3.0/24"] }
-    private-endpoint-subnet= { address_prefixes = ["10.20.4.0/24"] }
-    future-reserved-subnet = { address_prefixes = ["10.20.5.0/24"] }
+    management-subnet       = { address_prefixes = ["10.20.1.0/24"] }
+    application-subnet      = { address_prefixes = ["10.20.2.0/24"] }
+    data-subnet             = { address_prefixes = ["10.20.3.0/24"] }
+    private-endpoint-subnet = { address_prefixes = ["10.20.4.0/24"] }
+    future-reserved-subnet  = { address_prefixes = ["10.20.5.0/24"] }
   }
   tags = local.common_tags
 }
@@ -45,7 +48,17 @@ module "vm" {
   admin_username               = "azureuser"
   ssh_public_key               = var.ssh_public_key
   boot_diagnostics_storage_uri = module.storage.endpoints
-  vms = { "vm-opella-prod-eastus-001" = { subnet_id = module.vnet.subnet_ids["management-subnet"], vm_size = "Standard_B2ms", enable_public_ip = false } }
+  vms = {
+    "vm-opella-prod-eastus-001" = {
+      subnet_id        = module.vnet.subnet_ids["management-subnet"]
+      vm_size          = "Standard_B2ms"
+      enable_public_ip = false
+    }
+  }
   tags = local.common_tags
 }
-module "governance" { source = "../../modules/governance" resource_group_id = azurerm_resource_group.this.id location = var.location }
+module "governance" {
+  source            = "../../modules/governance"
+  resource_group_id = azurerm_resource_group.this.id
+  location          = var.location
+}

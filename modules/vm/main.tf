@@ -38,15 +38,22 @@ resource "azurerm_linux_virtual_machine" "this" {
     public_key = var.ssh_public_key
   }
 
-  identity { type = "SystemAssigned" }
+  identity {
+    type = "SystemAssigned"
+  }
 
-  os_disk { caching = "ReadWrite" storage_account_type = "Standard_LRS" }
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
   source_image_reference {
     publisher = "Canonical"
     offer     = "0001-com-ubuntu-server-jammy"
     sku       = "22_04-lts"
     version   = "latest"
   }
-  boot_diagnostics { storage_account_uri = var.boot_diagnostics_storage_uri }
+  boot_diagnostics {
+    storage_account_uri = var.boot_diagnostics_storage_uri
+  }
   tags = var.tags
 }

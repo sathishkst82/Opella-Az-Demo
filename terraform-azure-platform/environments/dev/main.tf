@@ -220,5 +220,4 @@ module "governance" {
   allowed_locations = var.allowed_locations
   required_tags     = ["Environment", "Project", "ManagedBy", "Owner", "CostCenter", "Region", "Application"]
   enforcement_mode  = "DoNotEnforce"
-  tags              = local.common_tags
 }

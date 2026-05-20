@@ -9,9 +9,10 @@ on:
         required: true
         options: [DEV, UAT, PROD]
       branch:
-        description: Git branch to deploy
+        description: Branch/ref to run against
         type: string
         default: main
+        required: true
       action:
         description: Terraform action
         type: choice

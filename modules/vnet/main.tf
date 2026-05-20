@@ -16,7 +16,7 @@ resource "azurerm_virtual_network" "this" {
 
   lifecycle {
     create_before_destroy = true
-    prevent_destroy       = var.prevent_destroy
+    prevent_destroy       = true
     ignore_changes        = [tags["LastPatched"]]
   }
 }

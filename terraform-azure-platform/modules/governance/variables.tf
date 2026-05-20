@@ -30,8 +30,3 @@ variable "enforcement_mode" {
   }
 }
 
-variable "tags" {
-  description = "Tags for policy resources where supported."
-  type        = map(string)
-  default     = {}
-}

@@ -48,6 +48,12 @@ on:
         default: false
         required: false
 
+permissions:
+  contents: read
+  id-token: write
+  pull-requests: write
+  actions: read
+
 jobs:
   validate:
     if: ${{ inputs.action == 'validate' }}

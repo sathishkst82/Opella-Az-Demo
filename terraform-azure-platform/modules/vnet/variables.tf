@@ -139,8 +139,3 @@ variable "enable_ddos" {
   default     = false
 }
 
-variable "prevent_destroy" {
-  description = "Retained for API compatibility; critical network resources use lifecycle prevent_destroy directly."
-  type        = bool
-  default     = true
-}
