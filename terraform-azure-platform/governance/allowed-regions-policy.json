@@ -1,0 +1,25 @@
+{
+  "name": "opella-allowed-regions",
+  "displayName": "Opella - Allowed Azure regions",
+  "mode": "Indexed",
+  "description": "Denies resources outside approved Azure regions.",
+  "parameters": {
+    "allowedLocations": {
+      "type": "Array",
+      "metadata": {
+        "displayName": "Allowed locations"
+      }
+    }
+  },
+  "policyRule": {
+    "if": {
+      "allOf": [
+        { "field": "location", "notIn": "[parameters('allowedLocations')]" },
+        { "field": "location", "notEquals": "global" }
+      ]
+    },
+    "then": {
+      "effect": "deny"
+    }
+  }
+}

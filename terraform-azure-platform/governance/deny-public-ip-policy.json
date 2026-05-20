@@ -1,0 +1,15 @@
+{
+  "name": "opella-deny-public-ip",
+  "displayName": "Opella - Deny Public IP",
+  "mode": "All",
+  "description": "Denies creation of standalone public IP resources.",
+  "policyRule": {
+    "if": {
+      "field": "type",
+      "equals": "Microsoft.Network/publicIPAddresses"
+    },
+    "then": {
+      "effect": "deny"
+    }
+  }
+}

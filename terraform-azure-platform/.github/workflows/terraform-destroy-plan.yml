@@ -1,0 +1,70 @@
+name: Terraform Destroy Plan
+
+on:
+  workflow_call:
+    inputs:
+      environment: { type: string, required: true }
+      branch: { type: string, required: true }
+      tf_lock_id: { type: string, required: false }
+      tf_use_extra_args: { type: boolean, required: false, default: false }
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  destroy_plan:
+    name: Destroy Plan ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    env:
+      ARM_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+      ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      ARM_USE_OIDC: true
+      TF_IN_AUTOMATION: true
+      TF_VAR_admin_password: ${{ secrets.WINDOWS_ADMIN_PASSWORD }}
+      ENV_DIR: environments/${{ fromJSON('{"DEV":"dev","UAT":"uat","PROD":"prod"}')[inputs.environment] }}
+      PLAN_FILE: tfdestroy-${{ inputs.environment }}.bin
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.7.5
+
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Terraform init
+        working-directory: ${{ env.ENV_DIR }}
+        run: |
+          terraform init \
+            -backend-config="resource_group_name=${{ secrets.TF_BACKEND_RESOURCE_GROUP }}" \
+            -backend-config="storage_account_name=${{ secrets.TF_BACKEND_STORAGE_ACCOUNT }}" \
+            -backend-config="container_name=${{ secrets.TF_BACKEND_CONTAINER }}" \
+            -backend-config="key=${{ secrets.TF_BACKEND_KEY }}"
+
+      - name: Optional force unlock
+        if: inputs.tf_lock_id != ''
+        working-directory: ${{ env.ENV_DIR }}
+        run: terraform force-unlock -force "${{ inputs.tf_lock_id }}"
+
+      - name: Terraform destroy plan
+        working-directory: ${{ env.ENV_DIR }}
+        run: |
+          EXTRA=""
+          if [ "${{ inputs.tf_use_extra_args }}" = "true" ]; then EXTRA="${{ secrets.EXTRA_ARGS }}"; fi
+          terraform plan -destroy -out="${{ env.PLAN_FILE }}" $EXTRA
+
+      - name: Upload destroy plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-destroy-plan-${{ inputs.environment }}
+          path: ${{ env.ENV_DIR }}/${{ env.PLAN_FILE }}
+          retention-days: 3
