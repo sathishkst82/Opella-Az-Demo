@@ -176,7 +176,7 @@ module "vm" {
     ops = {
       name           = local.names.vm
       computer_name  = "opldevops001"
-      size           = "Standard_B2ms"
+      size           = "Standard_B1s"
       subnet_id      = module.network.subnet_ids.management
       admin_username = var.admin_username
       admin_password = var.admin_password
