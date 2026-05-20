@@ -18,6 +18,12 @@ variable "cost_center" {
   default = "CC1001"
 }
 
-variable "ssh_public_key" {
-  type = string
+variable "admin_password" {
+  type      = string
+  sensitive = true
+
+  validation {
+    condition     = length(var.admin_password) >= 14
+    error_message = "admin_password must be at least 14 characters."
+  }
 }

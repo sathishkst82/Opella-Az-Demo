@@ -20,6 +20,7 @@ jobs:
       ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
       ARM_USE_OIDC: true
       TF_IN_AUTOMATION: true
+      TF_VAR_admin_password: ${{ secrets.WINDOWS_ADMIN_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
         with:

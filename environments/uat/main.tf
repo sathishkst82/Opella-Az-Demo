@@ -46,7 +46,7 @@ module "vm" {
   resource_group_name          = azurerm_resource_group.this.name
   location                     = var.location
   admin_username               = "azureuser"
-  ssh_public_key               = var.ssh_public_key
+  admin_password               = var.admin_password
   boot_diagnostics_storage_uri = module.storage.endpoints
   vms = {
     "vm-opella-uat-eastus-001" = {
