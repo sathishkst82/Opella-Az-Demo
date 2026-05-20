@@ -45,13 +45,13 @@ jobs:
           subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
       - name: Terraform Init
         run: |
-          terraform -chdir=environments/${{ lower(inputs.environment) }} init \
+          terraform -chdir=environments/${{ fromJSON('{"DEV":"dev","UAT":"uat","PROD":"prod"}')[inputs.environment] }} init \
             -backend-config="resource_group_name=${{ secrets.TF_BACKEND_RESOURCE_GROUP }}" \
             -backend-config="storage_account_name=${{ secrets.TF_BACKEND_STORAGE_ACCOUNT }}" \
             -backend-config="container_name=${{ secrets.TF_BACKEND_CONTAINER }}" \
             -backend-config="key=${{ secrets.TF_BACKEND_KEY }}"
       - name: Terraform Validate
-        run: terraform -chdir=environments/${{ lower(inputs.environment) }} validate
+        run: terraform -chdir=environments/${{ fromJSON('{"DEV":"dev","UAT":"uat","PROD":"prod"}')[inputs.environment] }} validate
       - name: TFLint
         run: tflint --init && tflint --recursive
       - name: Wiz IaC Scan
@@ -61,13 +61,13 @@ jobs:
       - name: Optional state operations
         run: |
           if [ -n "${{ inputs.tf_lock_id }}" ]; then
-            terraform -chdir=environments/${{ lower(inputs.environment) }} force-unlock -force "${{ inputs.tf_lock_id }}"
+            terraform -chdir=environments/${{ fromJSON('{"DEV":"dev","UAT":"uat","PROD":"prod"}')[inputs.environment] }} force-unlock -force "${{ inputs.tf_lock_id }}"
           fi
           if [ -n "${{ inputs.tf_import_name }}" ] && [ -n "${{ inputs.tf_import_id }}" ]; then
-            terraform -chdir=environments/${{ lower(inputs.environment) }} import "${{ inputs.tf_import_name }}" "${{ inputs.tf_import_id }}"
+            terraform -chdir=environments/${{ fromJSON('{"DEV":"dev","UAT":"uat","PROD":"prod"}')[inputs.environment] }} import "${{ inputs.tf_import_name }}" "${{ inputs.tf_import_id }}"
           fi
           if [ -n "${{ inputs.tf_remove_name }}" ]; then
-            terraform -chdir=environments/${{ lower(inputs.environment) }} state rm "${{ inputs.tf_remove_name }}"
+            terraform -chdir=environments/${{ fromJSON('{"DEV":"dev","UAT":"uat","PROD":"prod"}')[inputs.environment] }} state rm "${{ inputs.tf_remove_name }}"
           fi
       - name: Terraform Plan
         run: |
@@ -75,11 +75,11 @@ jobs:
           if [ "${{ inputs.tf_use_extra_args }}" = "true" ] && [ -n "${{ secrets.EXTRA_ARGS }}" ]; then
             EXTRA="${{ secrets.EXTRA_ARGS }}"
           fi
-          terraform -chdir=environments/${{ lower(inputs.environment) }} plan -out=tfplan $EXTRA
-          terraform -chdir=environments/${{ lower(inputs.environment) }} show -no-color tfplan > tfplan.txt
+          terraform -chdir=environments/${{ fromJSON('{"DEV":"dev","UAT":"uat","PROD":"prod"}')[inputs.environment] }} plan -out=tfplan $EXTRA
+          terraform -chdir=environments/${{ fromJSON('{"DEV":"dev","UAT":"uat","PROD":"prod"}')[inputs.environment] }} show -no-color tfplan > tfplan.txt
       - uses: actions/upload-artifact@v4
         with:
           name: tfplan-${{ inputs.environment }}
           path: |
-            environments/${{ lower(inputs.environment) }}/tfplan
-            environments/${{ lower(inputs.environment) }}/tfplan.txt
+            environments/${{ fromJSON('{"DEV":"dev","UAT":"uat","PROD":"prod"}')[inputs.environment] }}/tfplan
+            environments/${{ fromJSON('{"DEV":"dev","UAT":"uat","PROD":"prod"}')[inputs.environment] }}/tfplan.txt

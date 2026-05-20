@@ -19,6 +19,6 @@ jobs:
         with:
           ref: ${{ inputs.branch }}
       - run: terraform fmt -check -recursive
-      - run: terraform -chdir=environments/${{ lower(inputs.environment) }} init -backend=false
-      - run: terraform -chdir=environments/${{ lower(inputs.environment) }} validate
+      - run: terraform -chdir=environments/${{ fromJSON('{"DEV":"dev","UAT":"uat","PROD":"prod"}')[inputs.environment] }} init -backend=false
+      - run: terraform -chdir=environments/${{ fromJSON('{"DEV":"dev","UAT":"uat","PROD":"prod"}')[inputs.environment] }} validate
       - run: tflint --init && tflint --recursive
