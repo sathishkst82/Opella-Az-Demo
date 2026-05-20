@@ -1,6 +1,6 @@
 # Terraform Azure Platform
 
-Enterprise-grade Azure Infrastructure-as-Code platform for the Opella AI-driven DevOps orchestration ecosystem. It provisions segmented networking, Windows compute, private storage, Azure Policy governance, monitoring hooks, and GitHub Actions CI/CD using Terraform modules and OIDC-only Azure authentication.
+Enterprise-grade Azure Infrastructure-as-Code platform for provisioning segmented Azure networking, Windows compute, private storage, Azure Policy governance, monitoring hooks, and GitHub Actions CI/CD using Terraform modules and OIDC-only Azure authentication.
 
 ## Architecture Overview
 
@@ -12,18 +12,19 @@ docs/assessment-guide.md
 
 ```mermaid
 flowchart TB
-  teams[Microsoft Teams Bot] --> orch[AI DevOps Orchestrator]
-  orch --> ai[AI Gateway: OpenAI and Local LLMs]
-  ai --> rag[Vector DB Retrieval Layer]
-  rag --> knowledge[Confluence, SharePoint, Wikis, Incidents]
-  orch --> gha[GitHub Actions IaC Orchestration]
+  engineer[Platform Engineer] --> gha[GitHub Actions IaC Dispatch]
   gha --> oidc[GitHub OIDC Federation]
   oidc --> azure[Azure Subscription]
-  azure --> vnet[Segmented VNET]
-  azure --> vm[Windows VMs with Managed Identity]
-  azure --> storage[Storage Account and Blob Containers]
-  azure --> policy[Azure Policy Initiative]
-  azure --> monitor[Log Analytics and Diagnostics]
+  azure --> rg[Environment Resource Groups]
+  rg --> vnet[Reusable VNET Module]
+  vnet --> subnets[Management, Application, Data, Private Endpoint, Reserved Subnets]
+  vnet --> nsg[NSGs and Rules]
+  vnet --> routes[Route Tables]
+  vnet --> dns[Private DNS VNET Links]
+  rg --> vm[Windows VM Module]
+  rg --> storage[Storage Account, Containers, Private Endpoint]
+  rg --> policy[Azure Policy Governance]
+  rg --> monitor[Log Analytics and Diagnostics]
 ```
 
 The infrastructure layer is intentionally private-first. Workloads land in environment-specific VNETs, storage is protected by firewall rules and Private Endpoint, Windows VMs use private RDP access and managed identity, and governance is assigned as Azure Policy initiatives.
@@ -244,7 +245,7 @@ go test ./... -timeout 45m
 - Add Azure Monitor alert rules and action groups.
 - Add OPA/Conftest CI checks for organization-specific policy-as-code.
 - Add module publishing and semantic versioning through GitHub Releases.
-- Extend RAG platform services with Azure Container Apps or AKS modules.
+- Extend workload hosting with Azure Container Apps, AKS, or App Service modules.
 
 ## Documentation
 

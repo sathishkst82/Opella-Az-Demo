@@ -1,17 +1,36 @@
 flowchart TB
-  teams[Microsoft Teams Bot Framework] --> orch[AI DevOps Orchestrator Python/.NET]
-  orch --> gateway[AI Gateway OpenAI and Local LLMs]
-  gateway --> rag[Retrieval Layer Vector DB]
-  rag --> knowledge[Confluence SharePoint Wikis Incidents]
-  orch --> cicd[GitHub Actions Terraform Orchestration]
-  orch --> jira[Jira Adapter]
-  orch --> jenkins[Jenkins Adapter]
-  orch --> ansible[Ansible Automation]
-  cicd --> oidc[GitHub OIDC Federation]
+  user[Platform Engineer] --> dispatch[GitHub Actions IaC Dispatch]
+  dispatch --> validate[Validate]
+  dispatch --> plan[Plan]
+  dispatch --> apply[Apply]
+  dispatch --> destroy[Destroy Plan and Apply]
+
+  dispatch --> oidc[GitHub OIDC Federation]
   oidc --> azure[Azure Subscription]
-  azure --> rg[Environment Resource Groups]
-  rg --> vnet[VNET Segmented Subnets]
-  rg --> vm[Windows VMs Managed Identity]
-  rg --> storage[Storage Private Endpoint]
-  rg --> policy[Azure Policy Initiative]
-  rg --> monitor[Log Analytics Diagnostics Audit]
+
+  azure --> dev[DEV Resource Group]
+  azure --> uat[UAT Resource Group]
+  azure --> prod[PROD Resource Group]
+
+  dev --> vnet[VNET Module]
+  uat --> vnet
+  prod --> vnet
+
+  vnet --> mgmt[Management Subnet]
+  vnet --> app[Application Subnet]
+  vnet --> data[Data Subnet]
+  vnet --> pe[Private Endpoint Subnet]
+  vnet --> reserved[Future Reserved Subnet]
+  vnet --> nsg[Network Security Groups]
+  vnet --> routes[Route Tables]
+  vnet --> dnslink[Private DNS VNET Links]
+
+  dev --> vm[Windows VM Module]
+  dev --> storage[Storage Module]
+  dev --> policy[Governance Module]
+  dev --> monitor[Log Analytics and Diagnostics]
+
+  storage --> blob[Blob Containers]
+  storage --> privateEndpoint[Storage Private Endpoint]
+  privateEndpoint --> pe
+  policy --> tags[Required Tags Policy]
