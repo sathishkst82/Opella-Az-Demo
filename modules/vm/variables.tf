@@ -34,5 +34,6 @@ variable "vms" {
     subnet_id        = string
     vm_size          = string
     enable_public_ip = bool
+    computer_name    = string
   }))
 }

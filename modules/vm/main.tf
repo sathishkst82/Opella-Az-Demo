@@ -26,6 +26,7 @@ resource "azurerm_network_interface" "this" {
 resource "azurerm_windows_virtual_machine" "this" {
   for_each              = var.vms
   name                  = each.key
+  computer_name         = each.value.computer_name
   resource_group_name   = var.resource_group_name
   location              = var.location
   size                  = each.value.vm_size

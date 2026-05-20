@@ -53,6 +53,7 @@ module "vm" {
       subnet_id        = module.vnet.subnet_ids["management-subnet"]
       vm_size          = "Standard_B2ms"
       enable_public_ip = false
+      computer_name    = "oplprd001"
     }
   }
   tags = local.common_tags
