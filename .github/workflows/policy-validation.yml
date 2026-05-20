@@ -1,0 +1,8 @@
+name: policy-validation
+on: [pull_request]
+jobs:
+  policy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: terraform -chdir=environments/dev validate

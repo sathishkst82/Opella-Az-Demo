@@ -1,0 +1,24 @@
+name: terraform-validate
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        required: true
+      branch:
+        type: string
+        required: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
+      - run: terraform fmt -check -recursive
+      - run: terraform -chdir=environments/${{ lower(inputs.environment) }} init -backend=false
+      - run: terraform -chdir=environments/${{ lower(inputs.environment) }} validate
+      - run: tflint --init && tflint --recursive

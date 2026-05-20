@@ -1,0 +1,8 @@
+name: docs-validation
+on: [pull_request]
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: test -f README.md && test -f docs/environment-setup.md && test -f docs/oidc-setup.md
