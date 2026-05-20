@@ -1,0 +1,20 @@
+name: Policy Validation
+
+on:
+  pull_request:
+    paths:
+      - "modules/governance/**"
+      - "governance/**"
+      - ".github/workflows/policy-validation.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate-policy-json:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate policy JSON files
+        run: |
+          find governance -name "*.json" -print0 | xargs -0 -I{} jq empty {}

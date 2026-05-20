@@ -1,0 +1,59 @@
+name: Terraform Destroy Apply
+
+on:
+  workflow_call:
+    inputs:
+      environment: { type: string, required: true }
+      branch: { type: string, required: true }
+
+permissions:
+  contents: read
+  id-token: write
+  actions: read
+
+jobs:
+  destroy_apply:
+    name: Destroy Apply ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    env:
+      ARM_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+      ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      ARM_USE_OIDC: true
+      TF_IN_AUTOMATION: true
+      ENV_DIR: environments/${{ fromJSON('{"DEV":"dev","UAT":"uat","PROD":"prod"}')[inputs.environment] }}
+      PLAN_FILE: tfdestroy-${{ inputs.environment }}.bin
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.7.5
+
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Terraform init
+        working-directory: ${{ env.ENV_DIR }}
+        run: |
+          terraform init \
+            -backend-config="resource_group_name=${{ secrets.TF_BACKEND_RESOURCE_GROUP }}" \
+            -backend-config="storage_account_name=${{ secrets.TF_BACKEND_STORAGE_ACCOUNT }}" \
+            -backend-config="container_name=${{ secrets.TF_BACKEND_CONTAINER }}" \
+            -backend-config="key=${{ secrets.TF_BACKEND_KEY }}"
+
+      - name: Download destroy plan artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: terraform-destroy-plan-${{ inputs.environment }}
+          path: ${{ env.ENV_DIR }}
+
+      - name: Terraform apply destroy plan
+        working-directory: ${{ env.ENV_DIR }}
+        run: terraform apply -auto-approve "${{ env.PLAN_FILE }}"

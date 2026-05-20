@@ -1,0 +1,121 @@
+name: Terraform Plan
+
+on:
+  workflow_call:
+    inputs:
+      environment: { type: string, required: true }
+      branch: { type: string, required: true }
+      tf_lock_id: { type: string, required: false }
+      tf_import_id: { type: string, required: false }
+      tf_import_name: { type: string, required: false }
+      tf_remove_name: { type: string, required: false }
+      tf_use_extra_args: { type: boolean, required: false, default: false }
+
+permissions:
+  contents: read
+  id-token: write
+  pull-requests: write
+
+jobs:
+  plan:
+    name: Plan ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    env:
+      ARM_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+      ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      ARM_USE_OIDC: true
+      TF_IN_AUTOMATION: true
+      TF_VAR_admin_password: ${{ secrets.WINDOWS_ADMIN_PASSWORD }}
+      ENV_DIR: environments/${{ fromJSON('{"DEV":"dev","UAT":"uat","PROD":"prod"}')[inputs.environment] }}
+      PLAN_FILE: tfplan-${{ inputs.environment }}.bin
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.7.5
+
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Install tflint and Wiz CLI
+        run: |
+          curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+          curl -o wizcli https://downloads.wiz.io/wizcli/latest/wizcli-linux-amd64
+          chmod +x wizcli
+          sudo mv wizcli /usr/local/bin/wizcli
+
+      - name: Terraform init
+        working-directory: ${{ env.ENV_DIR }}
+        run: |
+          terraform init \
+            -backend-config="resource_group_name=${{ secrets.TF_BACKEND_RESOURCE_GROUP }}" \
+            -backend-config="storage_account_name=${{ secrets.TF_BACKEND_STORAGE_ACCOUNT }}" \
+            -backend-config="container_name=${{ secrets.TF_BACKEND_CONTAINER }}" \
+            -backend-config="key=${{ secrets.TF_BACKEND_KEY }}"
+
+      - name: Optional state operations
+        working-directory: ${{ env.ENV_DIR }}
+        run: |
+          if [ -n "${{ inputs.tf_lock_id }}" ]; then terraform force-unlock -force "${{ inputs.tf_lock_id }}"; fi
+          if [ -n "${{ inputs.tf_remove_name }}" ]; then terraform state rm "${{ inputs.tf_remove_name }}"; fi
+          if [ -n "${{ inputs.tf_import_id }}" ] && [ -n "${{ inputs.tf_import_name }}" ]; then terraform import "${{ inputs.tf_import_name }}" "${{ inputs.tf_import_id }}"; fi
+
+      - name: Terraform validate
+        working-directory: ${{ env.ENV_DIR }}
+        run: terraform validate
+
+      - name: TFLint
+        run: |
+          tflint --init
+          tflint --chdir=${{ env.ENV_DIR }}
+
+      - name: Wiz auth
+        run: wizcli auth --id "${{ secrets.WIZ_CLIENT_ID }}" --secret "${{ secrets.WIZ_CLIENT_SECRET }}"
+
+      - name: Wiz IaC scan
+        run: wizcli iac scan --path ${{ env.ENV_DIR }} --policy-hits-only
+
+      - name: Terraform plan
+        working-directory: ${{ env.ENV_DIR }}
+        run: |
+          EXTRA=""
+          if [ "${{ inputs.tf_use_extra_args }}" = "true" ]; then EXTRA="${{ secrets.EXTRA_ARGS }}"; fi
+          terraform plan -out="${{ env.PLAN_FILE }}" $EXTRA
+
+      - name: Generate plan summary
+        working-directory: ${{ env.ENV_DIR }}
+        run: |
+          terraform show -no-color "${{ env.PLAN_FILE }}" > plan.txt
+          {
+            echo "## Terraform Plan - ${{ inputs.environment }}"
+            echo
+            grep -E "Plan:|No changes" plan.txt || true
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload binary plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-plan-${{ inputs.environment }}
+          path: ${{ env.ENV_DIR }}/${{ env.PLAN_FILE }}
+          retention-days: 7
+
+      - name: Comment plan on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = `### Terraform Plan - ${{ inputs.environment }}\n\nPlan artifact: terraform-plan-${{ inputs.environment }}\n\nSee workflow summary for create/update/delete counts.`;
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body
+            });

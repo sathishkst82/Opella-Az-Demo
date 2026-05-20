@@ -1,0 +1,22 @@
+{
+  "name": "opella-require-tags",
+  "displayName": "Opella - Require mandatory tags",
+  "mode": "Indexed",
+  "description": "Denies resources missing mandatory enterprise tags.",
+  "policyRule": {
+    "if": {
+      "anyOf": [
+        { "field": "tags['Environment']", "exists": "false" },
+        { "field": "tags['Project']", "exists": "false" },
+        { "field": "tags['ManagedBy']", "exists": "false" },
+        { "field": "tags['Owner']", "exists": "false" },
+        { "field": "tags['CostCenter']", "exists": "false" },
+        { "field": "tags['Region']", "exists": "false" },
+        { "field": "tags['Application']", "exists": "false" }
+      ]
+    },
+    "then": {
+      "effect": "deny"
+    }
+  }
+}
