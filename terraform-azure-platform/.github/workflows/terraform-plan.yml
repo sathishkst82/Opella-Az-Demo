@@ -74,6 +74,22 @@ jobs:
           tflint --init
           tflint --chdir=${{ env.ENV_DIR }}
 
+      - name: Wiz IaC scan
+        if: ${{ vars.ENABLE_WIZ_SCAN == 'true' }}
+        env:
+          WIZ_CLIENT_ID: ${{ secrets.WIZ_CLIENT_ID }}
+          WIZ_CLIENT_SECRET: ${{ secrets.WIZ_CLIENT_SECRET }}
+        run: |
+          if [ -z "$WIZ_CLIENT_ID" ] || [ -z "$WIZ_CLIENT_SECRET" ]; then
+            echo "ENABLE_WIZ_SCAN is true, but Wiz credentials are not configured."
+            exit 1
+          fi
+          curl -o wizcli https://downloads.wiz.io/wizcli/latest/wizcli-linux-amd64
+          chmod +x wizcli
+          sudo mv wizcli /usr/local/bin/wizcli
+          wizcli auth --id "$WIZ_CLIENT_ID" --secret "$WIZ_CLIENT_SECRET"
+          wizcli iac scan --path ${{ env.ENV_DIR }} --policy-hits-only
+
       - name: Terraform plan
         working-directory: ${{ env.ENV_DIR }}
         run: |
