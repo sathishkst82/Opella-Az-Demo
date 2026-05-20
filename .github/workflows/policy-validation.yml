@@ -5,4 +5,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: terraform -chdir=environments/dev validate
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.7.5
+      - run: terraform -chdir=terraform-azure-platform/environments/dev init -backend=false -input=false
+      - run: terraform -chdir=terraform-azure-platform/environments/dev validate

@@ -44,7 +44,6 @@ terraform-azure-platform/
 ├── docs/
 ├── tests/
 ├── governance/
-├── .github/workflows/
 ├── .tflint.hcl
 ├── .pre-commit-config.yaml
 ├── Makefile
@@ -52,6 +51,8 @@ terraform-azure-platform/
 ├── providers.tf
 └── README.md
 ```
+
+GitHub Actions workflows live at the repository root in `.github/workflows/` because GitHub only discovers workflows from that location. Those workflows run Terraform against this `terraform-azure-platform/` project directory.
 
 ## Network Strategy
 

@@ -21,6 +21,8 @@ jobs:
       ARM_USE_OIDC: true
       TF_IN_AUTOMATION: true
       TF_VAR_admin_password: ${{ secrets.WINDOWS_ADMIN_PASSWORD }}
+      PROJECT_DIR: terraform-azure-platform
+      ENV_DIR: terraform-azure-platform/environments/${{ fromJSON('{"DEV":"dev","UAT":"uat","PROD":"prod"}')[inputs.environment] }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -30,7 +32,7 @@ jobs:
           terraform_version: 1.7.5
       - name: Install TFLint
         run: curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
-      - run: terraform fmt -check -recursive
-      - run: terraform -chdir=environments/${{ fromJSON('{"DEV":"dev","UAT":"uat","PROD":"prod"}')[inputs.environment] }} init -backend=false
-      - run: terraform -chdir=environments/${{ fromJSON('{"DEV":"dev","UAT":"uat","PROD":"prod"}')[inputs.environment] }} validate
-      - run: tflint --init && tflint --recursive
+      - run: terraform fmt -check -recursive ${{ env.PROJECT_DIR }}
+      - run: terraform -chdir=${{ env.ENV_DIR }} init -backend=false -input=false
+      - run: terraform -chdir=${{ env.ENV_DIR }} validate
+      - run: tflint --init && tflint --chdir=${{ env.ENV_DIR }}

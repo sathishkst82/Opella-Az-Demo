@@ -37,6 +37,9 @@ jobs:
       ARM_USE_OIDC: true
       TF_IN_AUTOMATION: true
       TF_VAR_admin_password: ${{ secrets.WINDOWS_ADMIN_PASSWORD }}
+      PROJECT_DIR: terraform-azure-platform
+      ENV_DIR: terraform-azure-platform/environments/${{ fromJSON('{"DEV":"dev","UAT":"uat","PROD":"prod"}')[inputs.environment] }}
+      PLAN_FILE: tfplan-${{ inputs.environment }}.bin
     permissions:
       id-token: write
       contents: read
@@ -57,15 +60,15 @@ jobs:
           subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
       - name: Terraform Init
         run: |
-          terraform -chdir=environments/${{ fromJSON('{"DEV":"dev","UAT":"uat","PROD":"prod"}')[inputs.environment] }} init -input=false \
+          terraform -chdir=${{ env.ENV_DIR }} init -input=false \
             -backend-config="resource_group_name=${{ secrets.TF_BACKEND_RESOURCE_GROUP }}" \
             -backend-config="storage_account_name=${{ secrets.TF_BACKEND_STORAGE_ACCOUNT }}" \
             -backend-config="container_name=${{ secrets.TF_BACKEND_CONTAINER }}" \
             -backend-config="key=${{ secrets.TF_BACKEND_KEY }}"
       - name: Terraform Validate
-        run: terraform -chdir=environments/${{ fromJSON('{"DEV":"dev","UAT":"uat","PROD":"prod"}')[inputs.environment] }} validate
+        run: terraform -chdir=${{ env.ENV_DIR }} validate
       - name: TFLint
-        run: tflint --init && tflint --recursive
+        run: tflint --init && tflint --chdir=${{ env.ENV_DIR }}
       - name: Wiz IaC Scan
         if: ${{ vars.ENABLE_WIZ_SCAN == 'true' }}
         env:
@@ -80,17 +83,17 @@ jobs:
           chmod +x wizcli
           sudo mv wizcli /usr/local/bin/wizcli
           wizcli auth --id "$WIZ_CLIENT_ID" --secret "$WIZ_CLIENT_SECRET"
-          wizcli iac scan --path .
+          wizcli iac scan --path ${{ env.PROJECT_DIR }} --policy-hits-only
       - name: Optional state operations
         run: |
           if [ -n "${{ inputs.tf_lock_id }}" ]; then
-            terraform -chdir=environments/${{ fromJSON('{"DEV":"dev","UAT":"uat","PROD":"prod"}')[inputs.environment] }} force-unlock -force "${{ inputs.tf_lock_id }}"
+            terraform -chdir=${{ env.ENV_DIR }} force-unlock -force "${{ inputs.tf_lock_id }}"
           fi
           if [ -n "${{ inputs.tf_import_name }}" ] && [ -n "${{ inputs.tf_import_id }}" ]; then
-            terraform -chdir=environments/${{ fromJSON('{"DEV":"dev","UAT":"uat","PROD":"prod"}')[inputs.environment] }} import "${{ inputs.tf_import_name }}" "${{ inputs.tf_import_id }}"
+            terraform -chdir=${{ env.ENV_DIR }} import "${{ inputs.tf_import_name }}" "${{ inputs.tf_import_id }}"
           fi
           if [ -n "${{ inputs.tf_remove_name }}" ]; then
-            terraform -chdir=environments/${{ fromJSON('{"DEV":"dev","UAT":"uat","PROD":"prod"}')[inputs.environment] }} state rm "${{ inputs.tf_remove_name }}"
+            terraform -chdir=${{ env.ENV_DIR }} state rm "${{ inputs.tf_remove_name }}"
           fi
       - name: Terraform Plan
         timeout-minutes: 30
@@ -99,11 +102,11 @@ jobs:
           if [ "${{ inputs.tf_use_extra_args }}" = "true" ] && [ -n "${{ secrets.EXTRA_ARGS }}" ]; then
             EXTRA="${{ secrets.EXTRA_ARGS }}"
           fi
-          terraform -chdir=environments/${{ fromJSON('{"DEV":"dev","UAT":"uat","PROD":"prod"}')[inputs.environment] }} plan -input=false -lock-timeout=5m -out=tfplan $EXTRA
-          terraform -chdir=environments/${{ fromJSON('{"DEV":"dev","UAT":"uat","PROD":"prod"}')[inputs.environment] }} show -no-color tfplan > tfplan.txt
+          terraform -chdir=${{ env.ENV_DIR }} plan -input=false -lock-timeout=5m -out="${{ env.PLAN_FILE }}" $EXTRA
+          terraform -chdir=${{ env.ENV_DIR }} show -no-color "${{ env.PLAN_FILE }}" > plan.txt
       - uses: actions/upload-artifact@v4
         with:
           name: tfplan-${{ inputs.environment }}
           path: |
-            environments/${{ fromJSON('{"DEV":"dev","UAT":"uat","PROD":"prod"}')[inputs.environment] }}/tfplan
-            environments/${{ fromJSON('{"DEV":"dev","UAT":"uat","PROD":"prod"}')[inputs.environment] }}/tfplan.txt
+            ${{ env.ENV_DIR }}/${{ env.PLAN_FILE }}
+            ${{ env.ENV_DIR }}/plan.txt

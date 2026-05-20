@@ -203,7 +203,7 @@ module "network" {
 The dispatch workflow is:
 
 ```text
-terraform-azure-platform/.github/workflows/iac-dispatch.yml
+.github/workflows/iac-dispatch.yml
 ```
 
 Supported actions:

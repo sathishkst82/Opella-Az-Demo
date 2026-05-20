@@ -25,6 +25,8 @@ jobs:
       ARM_USE_OIDC: true
       TF_IN_AUTOMATION: true
       TF_VAR_admin_password: ${{ secrets.WINDOWS_ADMIN_PASSWORD }}
+      ENV_DIR: terraform-azure-platform/environments/${{ fromJSON('{"DEV":"dev","UAT":"uat","PROD":"prod"}')[inputs.environment] }}
+      PLAN_FILE: tfdestroy-${{ inputs.environment }}.bin
     permissions:
       id-token: write
       contents: read
@@ -42,7 +44,7 @@ jobs:
           subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
       - name: Terraform Init
         run: |
-          terraform -chdir=environments/${{ fromJSON('{"DEV":"dev","UAT":"uat","PROD":"prod"}')[inputs.environment] }} init -input=false \
+          terraform -chdir=${{ env.ENV_DIR }} init -input=false \
             -backend-config="resource_group_name=${{ secrets.TF_BACKEND_RESOURCE_GROUP }}" \
             -backend-config="storage_account_name=${{ secrets.TF_BACKEND_STORAGE_ACCOUNT }}" \
             -backend-config="container_name=${{ secrets.TF_BACKEND_CONTAINER }}" \
@@ -53,8 +55,8 @@ jobs:
           if [ "${{ inputs.tf_use_extra_args }}" = "true" ] && [ -n "${{ secrets.EXTRA_ARGS }}" ]; then
             EXTRA="${{ secrets.EXTRA_ARGS }}"
           fi
-          terraform -chdir=environments/${{ fromJSON('{"DEV":"dev","UAT":"uat","PROD":"prod"}')[inputs.environment] }} plan -input=false -lock-timeout=5m -destroy -out=tfdestroy $EXTRA
+          terraform -chdir=${{ env.ENV_DIR }} plan -input=false -lock-timeout=5m -destroy -out="${{ env.PLAN_FILE }}" $EXTRA
       - uses: actions/upload-artifact@v4
         with:
           name: tfdestroy-${{ inputs.environment }}
-          path: environments/${{ fromJSON('{"DEV":"dev","UAT":"uat","PROD":"prod"}')[inputs.environment] }}/tfdestroy
+          path: ${{ env.ENV_DIR }}/${{ env.PLAN_FILE }}
