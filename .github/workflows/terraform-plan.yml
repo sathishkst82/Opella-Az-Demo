@@ -1,18 +1,85 @@
 name: terraform-plan
-on: {workflow_call: {inputs: {environment: {type: string, required: true}, branch: {type: string, required: true}, tf_use_extra_args: {type: boolean, required: false, default: false}}}}
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        required: true
+      branch:
+        type: string
+        required: true
+      tf_use_extra_args:
+        type: boolean
+        required: false
+        default: false
+      tf_lock_id:
+        type: string
+        required: false
+      tf_import_id:
+        type: string
+        required: false
+      tf_import_name:
+        type: string
+        required: false
+      tf_remove_name:
+        type: string
+        required: false
+
 jobs:
   plan:
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
-    permissions: {id-token: write, contents: read, pull-requests: write}
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
       - uses: azure/login@v2
-        with: {client-id: ${{ vars.AZURE_CLIENT_ID }}, tenant-id: ${{ vars.AZURE_TENANT_ID }}, subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}}
-      - run: terraform -chdir=environments/${{ lower(inputs.environment) }} init -backend-config="resource_group_name=${{ secrets.TF_BACKEND_RESOURCE_GROUP }}" -backend-config="storage_account_name=${{ secrets.TF_BACKEND_STORAGE_ACCOUNT }}" -backend-config="container_name=${{ secrets.TF_BACKEND_CONTAINER }}" -backend-config="key=${{ secrets.TF_BACKEND_KEY }}"
-      - run: terraform -chdir=environments/${{ lower(inputs.environment) }} validate
-      - run: tflint --init && tflint --recursive
-      - run: wizcli auth --id ${{ secrets.WIZ_CLIENT_ID }} --secret ${{ secrets.WIZ_CLIENT_SECRET }} && wizcli iac scan --path .
-      - run: terraform -chdir=environments/${{ lower(inputs.environment) }} plan -out=tfplan
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - name: Terraform Init
+        run: |
+          terraform -chdir=environments/${{ lower(inputs.environment) }} init \
+            -backend-config="resource_group_name=${{ secrets.TF_BACKEND_RESOURCE_GROUP }}" \
+            -backend-config="storage_account_name=${{ secrets.TF_BACKEND_STORAGE_ACCOUNT }}" \
+            -backend-config="container_name=${{ secrets.TF_BACKEND_CONTAINER }}" \
+            -backend-config="key=${{ secrets.TF_BACKEND_KEY }}"
+      - name: Terraform Validate
+        run: terraform -chdir=environments/${{ lower(inputs.environment) }} validate
+      - name: TFLint
+        run: tflint --init && tflint --recursive
+      - name: Wiz IaC Scan
+        run: |
+          wizcli auth --id "${{ secrets.WIZ_CLIENT_ID }}" --secret "${{ secrets.WIZ_CLIENT_SECRET }}"
+          wizcli iac scan --path .
+      - name: Optional state operations
+        run: |
+          if [ -n "${{ inputs.tf_lock_id }}" ]; then
+            terraform -chdir=environments/${{ lower(inputs.environment) }} force-unlock -force "${{ inputs.tf_lock_id }}"
+          fi
+          if [ -n "${{ inputs.tf_import_name }}" ] && [ -n "${{ inputs.tf_import_id }}" ]; then
+            terraform -chdir=environments/${{ lower(inputs.environment) }} import "${{ inputs.tf_import_name }}" "${{ inputs.tf_import_id }}"
+          fi
+          if [ -n "${{ inputs.tf_remove_name }}" ]; then
+            terraform -chdir=environments/${{ lower(inputs.environment) }} state rm "${{ inputs.tf_remove_name }}"
+          fi
+      - name: Terraform Plan
+        run: |
+          EXTRA=""
+          if [ "${{ inputs.tf_use_extra_args }}" = "true" ] && [ -n "${{ secrets.EXTRA_ARGS }}" ]; then
+            EXTRA="${{ secrets.EXTRA_ARGS }}"
+          fi
+          terraform -chdir=environments/${{ lower(inputs.environment) }} plan -out=tfplan $EXTRA
+          terraform -chdir=environments/${{ lower(inputs.environment) }} show -no-color tfplan > tfplan.txt
       - uses: actions/upload-artifact@v4
-        with: {name: tfplan-${{ inputs.environment }}, path: environments/${{ lower(inputs.environment) }}/tfplan}
+        with:
+          name: tfplan-${{ inputs.environment }}
+          path: |
+            environments/${{ lower(inputs.environment) }}/tfplan
+            environments/${{ lower(inputs.environment) }}/tfplan.txt

@@ -1,29 +1,100 @@
 name: iac-dispatch
+
 on:
   workflow_dispatch:
     inputs:
-      environment: {type: choice, options: [DEV,UAT,PROD], required: true}
-      branch: {type: string, default: main, required: true}
-      action: {type: choice, options: [validate,plan,plan-apply,destroy-plan,destroy-apply], required: true}
-      tf_lock_id: {type: string, required: false}
-      tf_import_id: {type: string, required: false}
-      tf_import_name: {type: string, required: false}
-      tf_remove_name: {type: string, required: false}
-      tf_use_extra_args: {type: boolean, default: false, required: false}
+      environment:
+        description: "Target environment"
+        type: choice
+        options:
+          - DEV
+          - UAT
+          - PROD
+        required: true
+      branch:
+        description: "Branch/ref to run against"
+        type: string
+        default: main
+        required: true
+      action:
+        description: "Terraform action"
+        type: choice
+        options:
+          - validate
+          - plan
+          - plan-apply
+          - destroy-plan
+          - destroy-apply
+        required: true
+      tf_lock_id:
+        description: "Optional lock ID for force-unlock"
+        type: string
+        required: false
+      tf_import_id:
+        description: "Optional resource ID to import"
+        type: string
+        required: false
+      tf_import_name:
+        description: "Optional Terraform resource address for import"
+        type: string
+        required: false
+      tf_remove_name:
+        description: "Optional Terraform resource address to state rm"
+        type: string
+        required: false
+      tf_use_extra_args:
+        description: "Use EXTRA_ARGS secret in Terraform commands"
+        type: boolean
+        default: false
+        required: false
+
 jobs:
   validate:
     if: ${{ inputs.action == 'validate' }}
     uses: ./.github/workflows/terraform-validate.yml
-    with: {environment: ${{ inputs.environment }}, branch: ${{ inputs.branch }}}
+    with:
+      environment: ${{ inputs.environment }}
+      branch: ${{ inputs.branch }}
     secrets: inherit
+
   plan:
-    if: ${{ contains(fromJson('["plan","plan-apply"]'), inputs.action) }}
+    if: ${{ inputs.action == 'plan' || inputs.action == 'plan-apply' }}
     uses: ./.github/workflows/terraform-plan.yml
-    with: {environment: ${{ inputs.environment }}, branch: ${{ inputs.branch }}, tf_use_extra_args: ${{ inputs.tf_use_extra_args }}}
+    with:
+      environment: ${{ inputs.environment }}
+      branch: ${{ inputs.branch }}
+      tf_use_extra_args: ${{ inputs.tf_use_extra_args }}
+      tf_lock_id: ${{ inputs.tf_lock_id }}
+      tf_import_id: ${{ inputs.tf_import_id }}
+      tf_import_name: ${{ inputs.tf_import_name }}
+      tf_remove_name: ${{ inputs.tf_remove_name }}
     secrets: inherit
+
   apply:
-    needs: [plan]
+    needs: plan
     if: ${{ inputs.action == 'plan-apply' }}
     uses: ./.github/workflows/terraform-apply.yml
-    with: {environment: ${{ inputs.environment }}, branch: ${{ inputs.branch }}}
+    with:
+      environment: ${{ inputs.environment }}
+      branch: ${{ inputs.branch }}
+      tf_use_extra_args: ${{ inputs.tf_use_extra_args }}
+    secrets: inherit
+
+  destroy_plan:
+    if: ${{ inputs.action == 'destroy-plan' || inputs.action == 'destroy-apply' }}
+    uses: ./.github/workflows/terraform-destroy-plan.yml
+    with:
+      environment: ${{ inputs.environment }}
+      branch: ${{ inputs.branch }}
+      tf_use_extra_args: ${{ inputs.tf_use_extra_args }}
+    secrets: inherit
+
+  destroy_apply:
+    needs: destroy_plan
+    if: ${{ inputs.action == 'destroy-apply' }}
+    uses: ./.github/workflows/terraform-destroy-apply.yml
+    with:
+      environment: ${{ inputs.environment }}
+      branch: ${{ inputs.branch }}
+      tf_use_extra_args: ${{ inputs.tf_use_extra_args }}
     secrets: inherit

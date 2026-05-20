@@ -1,9 +1,46 @@
 name: terraform-destroy-apply
-on: {workflow_call: {inputs: {environment: {type: string, required: true}}}}
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        required: true
+      branch:
+        type: string
+        required: true
+      tf_use_extra_args:
+        type: boolean
+        required: false
+        default: false
+
 jobs:
-  destroy:
+  destroy_apply:
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - uses: actions/checkout@v4
-      - run: terraform -chdir=environments/${{ lower(inputs.environment) }} destroy -auto-approve
+        with:
+          ref: ${{ inputs.branch }}
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - name: Terraform Init
+        run: |
+          terraform -chdir=environments/${{ lower(inputs.environment) }} init \
+            -backend-config="resource_group_name=${{ secrets.TF_BACKEND_RESOURCE_GROUP }}" \
+            -backend-config="storage_account_name=${{ secrets.TF_BACKEND_STORAGE_ACCOUNT }}" \
+            -backend-config="container_name=${{ secrets.TF_BACKEND_CONTAINER }}" \
+            -backend-config="key=${{ secrets.TF_BACKEND_KEY }}"
+      - name: Terraform Destroy
+        run: |
+          EXTRA=""
+          if [ "${{ inputs.tf_use_extra_args }}" = "true" ] && [ -n "${{ secrets.EXTRA_ARGS }}" ]; then
+            EXTRA="${{ secrets.EXTRA_ARGS }}"
+          fi
+          terraform -chdir=environments/${{ lower(inputs.environment) }} destroy -auto-approve $EXTRA
