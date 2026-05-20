@@ -1,0 +1,29 @@
+name: iac-dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      environment: {type: choice, options: [DEV,UAT,PROD], required: true}
+      branch: {type: string, default: main, required: true}
+      action: {type: choice, options: [validate,plan,plan-apply,destroy-plan,destroy-apply], required: true}
+      tf_lock_id: {type: string, required: false}
+      tf_import_id: {type: string, required: false}
+      tf_import_name: {type: string, required: false}
+      tf_remove_name: {type: string, required: false}
+      tf_use_extra_args: {type: boolean, default: false, required: false}
+jobs:
+  validate:
+    if: ${{ inputs.action == 'validate' }}
+    uses: ./.github/workflows/terraform-validate.yml
+    with: {environment: ${{ inputs.environment }}, branch: ${{ inputs.branch }}}
+    secrets: inherit
+  plan:
+    if: ${{ contains(fromJson('["plan","plan-apply"]'), inputs.action) }}
+    uses: ./.github/workflows/terraform-plan.yml
+    with: {environment: ${{ inputs.environment }}, branch: ${{ inputs.branch }}, tf_use_extra_args: ${{ inputs.tf_use_extra_args }}}
+    secrets: inherit
+  apply:
+    needs: [plan]
+    if: ${{ inputs.action == 'plan-apply' }}
+    uses: ./.github/workflows/terraform-apply.yml
+    with: {environment: ${{ inputs.environment }}, branch: ${{ inputs.branch }}}
+    secrets: inherit
