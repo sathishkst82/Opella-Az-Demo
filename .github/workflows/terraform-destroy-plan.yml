@@ -42,6 +42,21 @@ jobs:
           client-id: ${{ vars.AZURE_CLIENT_ID }}
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
           subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - name: Open storage firewall for CI refresh
+        run: |
+          ENV_NAME=$(echo "${{ inputs.environment }}" | tr '[:upper:]' '[:lower:]')
+          RESOURCE_GROUP="rg-opella-${ENV_NAME}-eastus"
+          STORAGE_ACCOUNT="stopella${ENV_NAME}eus001"
+
+          if az storage account show --resource-group "$RESOURCE_GROUP" --name "$STORAGE_ACCOUNT" >/dev/null 2>&1; then
+            az storage account update \
+              --resource-group "$RESOURCE_GROUP" \
+              --name "$STORAGE_ACCOUNT" \
+              --public-network-access Enabled \
+              --default-action Allow
+          else
+            echo "Storage account $STORAGE_ACCOUNT does not exist yet; skipping firewall preflight."
+          fi
       - name: Terraform Init
         run: |
           terraform -chdir=${{ env.ENV_DIR }} init -input=false \
