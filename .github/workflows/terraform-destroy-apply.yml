@@ -1,0 +1,9 @@
+name: terraform-destroy-apply
+on: {workflow_call: {inputs: {environment: {type: string, required: true}}}}
+jobs:
+  destroy:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: terraform -chdir=environments/${{ lower(inputs.environment) }} destroy -auto-approve

@@ -1,0 +1,10 @@
+name: terraform-destroy-plan
+on: {workflow_call: {inputs: {environment: {type: string, required: true}}}}
+jobs:
+  dplan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: terraform -chdir=environments/${{ lower(inputs.environment) }} plan -destroy -out=tfdestroy
+      - uses: actions/upload-artifact@v4
+        with: {name: tfdestroy-${{ inputs.environment }}, path: environments/${{ lower(inputs.environment) }}/tfdestroy}
