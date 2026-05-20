@@ -4,6 +4,12 @@ Enterprise-grade Azure Infrastructure-as-Code platform for the Opella AI-driven 
 
 ## Architecture Overview
 
+For a direct mapping of the assessment requirements to the implementation, see:
+
+```text
+docs/assessment-guide.md
+```
+
 ```mermaid
 flowchart TB
   teams[Microsoft Teams Bot] --> orch[AI DevOps Orchestrator]
