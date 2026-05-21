@@ -25,7 +25,7 @@ jobs:
       ARM_USE_OIDC: true
       TF_IN_AUTOMATION: true
       TF_VAR_admin_password: ${{ secrets.WINDOWS_ADMIN_PASSWORD }}
-      ENV_DIR: terraform-azure-platform/environments/${{ fromJSON('{"DEV":"dev","UAT":"uat","PROD":"prod"}')[inputs.environment] }}
+      ENV_DIR: environments/${{ fromJSON('{"DEV":"dev","UAT":"uat","PROD":"prod"}')[inputs.environment] }}
       PLAN_FILE: tfplan-${{ inputs.environment }}.bin
     permissions:
       id-token: write

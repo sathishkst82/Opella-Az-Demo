@@ -5,4 +5,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: test -f terraform-azure-platform/README.md && test -f terraform-azure-platform/docs/environment-setup.md && test -f terraform-azure-platform/docs/oidc-setup.md && test -f terraform-azure-platform/docs/assessment-guide.md
+      - run: test -f README.md && test -f docs/environment-setup.md && test -f docs/oidc-setup.md && test -f docs/assessment-guide.md

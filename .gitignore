@@ -12,3 +12,11 @@ override.tf.json
 *_override.tf.json
 .terraformrc
 terraform.rc
+.terraform.lock.hcl
+*.tfplan
+*.tfplan.*
+tfplan-*.bin
+tfdestroy-*.bin
+*.auto.tfvars
+!.tfvars.example
+.terraform-docs.yml

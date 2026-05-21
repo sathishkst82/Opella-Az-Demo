@@ -1,6 +1,6 @@
 # Assessment Guide
 
-This repository demonstrates a reusable Terraform module pattern and a GitHub Actions release workflow for deploying Azure infrastructure across multiple environments. The main implementation lives under `terraform-azure-platform/`.
+This repository demonstrates a reusable Terraform module pattern and a GitHub Actions release workflow for deploying Azure infrastructure across multiple environments. The main implementation lives at the repository root.
 
 ## What This Repository Builds
 
@@ -22,7 +22,7 @@ The platform deploys an Azure environment with:
 The reusable VNET module is located at:
 
 ```text
-terraform-azure-platform/modules/vnet
+modules/vnet
 ```
 
 It accepts configurable inputs for:
@@ -75,9 +75,9 @@ Useful outputs:
 Environment folders are located at:
 
 ```text
-terraform-azure-platform/environments/dev
-terraform-azure-platform/environments/uat
-terraform-azure-platform/environments/prod
+environments/dev
+environments/uat
+environments/prod
 ```
 
 The dev environment is implemented in `eastus` and is designed so UAT and PROD can follow the same pattern with different variables and CIDR ranges.
@@ -147,7 +147,7 @@ These tags help with:
 Tag enforcement is represented in:
 
 ```text
-terraform-azure-platform/modules/governance
+modules/governance
 ```
 
 The governance module defines and assigns policies for required tags, allowed regions, and public IP control.
@@ -272,10 +272,10 @@ modules/governance
 To generate module documentation locally:
 
 ```bash
-terraform-docs markdown table terraform-azure-platform/modules/vnet
-terraform-docs markdown table terraform-azure-platform/modules/vm
-terraform-docs markdown table terraform-azure-platform/modules/storage
-terraform-docs markdown table terraform-azure-platform/modules/governance
+terraform-docs markdown table modules/vnet
+terraform-docs markdown table modules/vm
+terraform-docs markdown table modules/storage
+terraform-docs markdown table modules/governance
 ```
 
 ## Testing
@@ -283,8 +283,8 @@ terraform-docs markdown table terraform-azure-platform/modules/governance
 The VNET module has a test scaffold under:
 
 ```text
-terraform-azure-platform/tests
-terraform-azure-platform/tests/fixtures/vnet
+tests
+tests/fixtures/vnet
 ```
 
 This demonstrates how the module can be tested independently using fixture-based Terraform tests or Terratest-style Go tests.

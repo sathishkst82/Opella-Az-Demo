@@ -1,4 +1,4 @@
-module terraform-azure-platform/tests
+module sathish-azure-platform/tests
 
 go 1.22
 
