@@ -61,8 +61,8 @@ jobs:
       - name: Open storage firewall for CI refresh
         run: |
           ENV_NAME=$(echo "${{ inputs.environment }}" | tr '[:upper:]' '[:lower:]')
-          RESOURCE_GROUP="rg-opella-${ENV_NAME}-eastus"
-          STORAGE_ACCOUNT="stopella${ENV_NAME}eus001"
+          RESOURCE_GROUP="rg-sathish-${ENV_NAME}-eastus"
+          STORAGE_ACCOUNT="stsathish${ENV_NAME}eus001"
 
           if az storage account show --resource-group "$RESOURCE_GROUP" --name "$STORAGE_ACCOUNT" >/dev/null 2>&1; then
             az storage account update \

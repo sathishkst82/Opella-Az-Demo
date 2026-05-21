@@ -1,6 +1,6 @@
 {
-  "name": "opella-deny-public-ip",
-  "displayName": "Opella - Deny Public IP",
+  "name": "sathish-deny-public-ip",
+  "displayName": "Sathish - Deny Public IP",
   "mode": "All",
   "description": "Denies creation of standalone public IP resources.",
   "policyRule": {

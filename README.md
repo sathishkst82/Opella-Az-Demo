@@ -1,4 +1,4 @@
-# Opella Azure Terraform Demo
+# Sathish Azure Terraform Demo
 
 This repository contains an Azure Infrastructure-as-Code demo built with Terraform and GitHub Actions.
 

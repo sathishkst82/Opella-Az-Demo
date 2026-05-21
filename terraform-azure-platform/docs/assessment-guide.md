@@ -162,7 +162,7 @@ module "network" {
 
   resource_group_name = azurerm_resource_group.this.name
   location            = azurerm_resource_group.this.location
-  vnet_name           = "vnet-opella-dev-eastus"
+  vnet_name           = "vnet-sathish-dev-eastus"
   address_space       = ["10.10.0.0/16"]
   tags                = local.common_tags
 
@@ -171,7 +171,7 @@ module "network" {
       name             = "management-subnet"
       address_prefixes = ["10.10.0.0/24"]
       nsg_rules        = ["allow-rdp-private"]
-      route_table      = "rt-opella-dev-eastus-egress"
+      route_table      = "rt-sathish-dev-eastus-egress"
     }
     private_endpoint = {
       name                                          = "private-endpoint-subnet"

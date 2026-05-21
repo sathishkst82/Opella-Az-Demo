@@ -1,6 +1,6 @@
 {
-  "name": "opella-require-tags",
-  "displayName": "Opella - Require mandatory tags",
+  "name": "sathish-require-tags",
+  "displayName": "Sathish - Require mandatory tags",
   "mode": "Indexed",
   "description": "Denies resources missing mandatory enterprise tags.",
   "policyRule": {

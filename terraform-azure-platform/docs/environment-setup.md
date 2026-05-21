@@ -17,7 +17,7 @@ Environment secrets:
 | `TF_BACKEND_RESOURCE_GROUP` | Resource group containing the remote state storage account. |
 | `TF_BACKEND_STORAGE_ACCOUNT` | Remote state storage account name. |
 | `TF_BACKEND_CONTAINER` | Remote state blob container name. |
-| `TF_BACKEND_KEY` | Environment state file key, for example `opella/dev.tfstate`. |
+| `TF_BACKEND_KEY` | Environment state file key, for example `sathish/dev.tfstate`. |
 | `WIZ_CLIENT_ID` | Wiz service account client ID for IaC scanning. |
 | `WIZ_CLIENT_SECRET` | Wiz service account secret. |
 | `WINDOWS_ADMIN_PASSWORD` | Sensitive Windows VM local administrator password injected as `TF_VAR_admin_password`. |
@@ -37,6 +37,6 @@ Recommended state keys:
 
 | Environment | Backend key |
 | --- | --- |
-| DEV | `opella/dev.tfstate` |
-| UAT | `opella/uat.tfstate` |
-| PROD | `opella/prod.tfstate` |
+| DEV | `sathish/dev.tfstate` |
+| UAT | `sathish/uat.tfstate` |
+| PROD | `sathish/prod.tfstate` |

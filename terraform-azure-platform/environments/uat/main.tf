@@ -175,7 +175,7 @@ module "vm" {
   vms = {
     ops = {
       name           = local.names.vm
-      computer_name  = "opluatops001"
+      computer_name  = "sathishuat001"
       size           = "Standard_B1s"
       subnet_id      = module.network.subnet_ids.management
       admin_username = var.admin_username
@@ -218,7 +218,7 @@ module "governance" {
 
   assignment_scope   = azurerm_resource_group.this.id
   policy_name_prefix = "${var.project}-${var.environment}-${var.location_short}"
-  initiative_name    = "Opella-Governance-Baseline-${upper(var.environment)}"
+  initiative_name    = "Sathish-Governance-Baseline-${upper(var.environment)}"
   allowed_locations  = var.allowed_locations
   required_tags      = ["Environment", "Project", "ManagedBy", "Owner", "CostCenter", "Region", "Application"]
   enforcement_mode   = "DoNotEnforce"

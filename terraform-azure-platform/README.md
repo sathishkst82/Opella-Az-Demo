@@ -69,10 +69,10 @@ Each environment uses management, application, data, private endpoint, and futur
 
 Names are centralized in environment `locals`:
 
-- Resource group: `rg-opella-dev-eastus`
-- VNET: `vnet-opella-dev-eastus`
-- VM: `vm-opella-dev-eastus-001`
-- Storage: `stopelladeveus001`
+- Resource group: `rg-sathish-dev-eastus`
+- VNET: `vnet-sathish-dev-eastus`
+- VM: `vm-sathish-dev-eastus-001`
+- Storage: `stsathishdeveus001`
 
 Common tags are built with `merge()` and applied consistently:
 
@@ -88,7 +88,7 @@ module "network" {
 
   resource_group_name = azurerm_resource_group.this.name
   location            = azurerm_resource_group.this.location
-  vnet_name           = "vnet-opella-dev-eastus"
+  vnet_name           = "vnet-sathish-dev-eastus"
   address_space       = ["10.10.0.0/16"]
   tags                = local.common_tags
 
@@ -107,7 +107,7 @@ module "storage" {
 
   resource_group_name  = azurerm_resource_group.this.name
   location             = azurerm_resource_group.this.location
-  storage_account_name = "stopelladeveus001"
+  storage_account_name = "stsathishdeveus001"
   containers = {
     artifacts = { name = "artifacts" }
     logs      = { name = "logs" }
@@ -135,7 +135,7 @@ The governance module creates custom policies for:
 - Allowed regions
 - Deny Public IP
 
-These are grouped into the `Opella-Governance-Baseline` initiative and assigned to each environment resource group. DEV and UAT use `DoNotEnforce` to support adoption and testing; PROD uses `Default` enforcement.
+These are grouped into the `Sathish-Governance-Baseline` initiative and assigned to each environment resource group. DEV and UAT use `DoNotEnforce` to support adoption and testing; PROD uses `Default` enforcement.
 
 Azure Policy provides runtime guardrails. Future OPA integration can add pre-plan policy checks in CI using Conftest or Checkov without replacing Azure Policy.
 

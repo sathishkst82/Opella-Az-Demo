@@ -1,13 +1,13 @@
 variable "initiative_name" {
   description = "Policy initiative display name."
   type        = string
-  default     = "Opella-Governance-Baseline"
+  default     = "Sathish-Governance-Baseline"
 }
 
 variable "policy_name_prefix" {
   description = "Unique prefix for subscription-level policy definition names."
   type        = string
-  default     = "opella"
+  default     = "sathish"
 }
 
 variable "assignment_scope" {

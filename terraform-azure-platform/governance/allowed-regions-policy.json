@@ -1,6 +1,6 @@
 {
-  "name": "opella-allowed-regions",
-  "displayName": "Opella - Allowed Azure regions",
+  "name": "sathish-allowed-regions",
+  "displayName": "Sathish - Allowed Azure regions",
   "mode": "Indexed",
   "description": "Denies resources outside approved Azure regions.",
   "parameters": {

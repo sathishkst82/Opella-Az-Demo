@@ -5,8 +5,8 @@ This platform uses GitHub OIDC federation only. No Azure client secrets are stor
 Create an app registration:
 
 ```bash
-az ad app create --display-name app-github-opella-terraform
-APP_ID=$(az ad app list --display-name app-github-opella-terraform --query "[0].appId" -o tsv)
+az ad app create --display-name app-github-sathish-terraform
+APP_ID=$(az ad app list --display-name app-github-sathish-terraform --query "[0].appId" -o tsv)
 az ad sp create --id "$APP_ID"
 ```
 

@@ -1,7 +1,7 @@
 variable "project" {
   description = "Project or platform short name."
   type        = string
-  default     = "opella"
+  default     = "sathish"
 }
 
 variable "environment" {

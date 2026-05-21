@@ -7,11 +7,11 @@ resource "random_string" "suffix" {
 }
 
 resource "azurerm_resource_group" "this" {
-  name     = "rg-opella-test-${random_string.suffix.result}"
+  name     = "rg-sathish-test-${random_string.suffix.result}"
   location = var.location
   tags = {
     Environment = "TEST"
-    Project     = "opella"
+    Project     = "sathish"
     ManagedBy   = "Terratest"
     Owner       = "platform-engineering"
     CostCenter  = "cc-platform"
@@ -25,7 +25,7 @@ module "vnet" {
 
   resource_group_name = azurerm_resource_group.this.name
   location            = azurerm_resource_group.this.location
-  vnet_name           = "vnet-opella-test-${random_string.suffix.result}"
+  vnet_name           = "vnet-sathish-test-${random_string.suffix.result}"
   address_space       = ["10.250.0.0/16"]
   tags                = azurerm_resource_group.this.tags
 

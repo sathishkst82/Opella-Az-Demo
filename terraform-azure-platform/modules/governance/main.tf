@@ -44,7 +44,7 @@ locals {
 
 resource "azurerm_policy_definition" "require_tags" {
   name         = "${var.policy_name_prefix}-require-tags"
-  display_name = "Opella - Require mandatory tags"
+  display_name = "Sathish - Require mandatory tags"
   policy_type  = "Custom"
   mode         = "Indexed"
   description  = "Denies resources missing mandatory enterprise tags."
@@ -53,7 +53,7 @@ resource "azurerm_policy_definition" "require_tags" {
 
 resource "azurerm_policy_definition" "allowed_regions" {
   name         = "${var.policy_name_prefix}-allowed-regions"
-  display_name = "Opella - Allowed Azure regions"
+  display_name = "Sathish - Allowed Azure regions"
   policy_type  = "Custom"
   mode         = "Indexed"
   description  = "Denies resources outside approved Azure regions."
@@ -71,7 +71,7 @@ resource "azurerm_policy_definition" "allowed_regions" {
 
 resource "azurerm_policy_definition" "deny_public_ip" {
   name         = "${var.policy_name_prefix}-deny-public-ip"
-  display_name = "Opella - Deny Public IP"
+  display_name = "Sathish - Deny Public IP"
   policy_type  = "Custom"
   mode         = "All"
   description  = "Denies creation of standalone public IP resources."
@@ -124,7 +124,7 @@ resource "azurerm_resource_group_policy_assignment" "baseline" {
   policy_definition_id = azurerm_policy_set_definition.baseline.id
   display_name         = var.initiative_name
   enforce              = var.enforcement_mode == "Default"
-  description          = "Assignment of the Opella baseline governance initiative."
+  description          = "Assignment of the Sathish baseline governance initiative."
 
   parameters = jsonencode({
     allowedLocations = {
